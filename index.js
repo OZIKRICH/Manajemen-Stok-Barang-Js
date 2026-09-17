@@ -8,7 +8,7 @@ class StockManager {
 
     tampilkanBarang() {
         this.DaftarBarang.forEach(b => {
-            total = b.stok * b.harga;
+            let total = b.stok * b.harga;
             console.log(`${b.id}. ${b.nama.padEnd(20)} Stok: ${b.stok} Harga: ${b.harga} Total Nilai: ${total}`);
         });
     }
@@ -33,10 +33,12 @@ class StockManager {
         const barang = this.DaftarBarang.find(item => item.id === id);
 
         if (barang) {
-            barang.stok -= jumlah;
-            console.log(`Berhasil mengurangi stok ${barang.nama}. Stok sekarang: ${barang.stok}`);
-        } else if (jumlah > barang.stok) {
-            console.log(`Barang yang keluar lebih dari stok. Stok sekarang: ${barang.stok}`);
+            if (jumlah > barang.stok) {
+                console.log(`Barang yang keluar lebih dari stok. Stok sekarang: ${barang.stok}`);
+            } else {
+                barang.stok -= jumlah;
+                console.log(`Berhasil mengurangi stok ${barang.nama}. Stok sekarang: ${barang.stok}`);
+            }
         } else {
             console.log(`Barang dengan ID ${id} tidak ditemukan.`);
         }
@@ -64,7 +66,7 @@ class StockManager {
 
 const manager = new StockManager();
 
-console.log(`%c${"=== Manajemen Stok Barang ==="}`);
+console.log("=== Manajemen Stok Barang ===");
 
 manager.muat();
 
@@ -81,6 +83,7 @@ while (true) {
                 console.log("Terjadi Masalah Saat Menampilkan Data!");
                 console.log("Pesan Error: ", error.message);
             }
+            break;
         case 2:
             const nama = readlineSync.question("Masukan Nama Barang: ");
             let stok;
@@ -111,9 +114,22 @@ while (true) {
             }
             console.log("Barang Berhasil ditambahkan");
             manager.simpan();
+            break;
         case 3:
             manager.tampilkanBarang();
-            const idMasuk = Number(readlineSync.question("Masukan Id Barang Yang Masuk: "));
+            let idMasuk;
+            while (true) {
+                idMasuk = Number(readlineSync.question("Masukan Id Barang Yang Masuk: "));
+                if (isNaN(idMasuk)) {
+                    console.log("ID harus berupa angka!");
+                    continue;
+                }
+                const barang = manager.DaftarBarang.find(b => b.id === idMasuk);
+                if (barang) {
+                    break;
+                }
+                console.log("ID tidak ditemukan. Masukan ID yang valid.\n");
+            }
             let jumlahmasuk;
             while (true) {
                 jumlahmasuk = Number(readlineSync.question("Masukan Jumlah barang yang masuk: "));
@@ -127,9 +143,22 @@ while (true) {
             manager.barangMasuk(idMasuk, jumlahmasuk);
             console.log("barang berhasil masuk");
             manager.simpan();
+            break;
         case 4:
-            tampilkanBarang();
-            const idKeluar = Number(readlineSync.question("Masukan Id Barang yang keluar: "));
+            manager.tampilkanBarang();
+            let idKeluar;
+            while (true) {
+                idKeluar = Number(readlineSync.question("Masukan Id Barang yang keluar: "));
+                if (isNaN(idKeluar)) {
+                    console.log("ID harus berupa angka!");
+                    continue;
+                }
+                const barang = manager.DaftarBarang.find(b => b.id === idKeluar);
+                if (barang) {
+                    break;
+                }
+                console.log("ID tidak ditemukan. Masukan ID yang valid.\n");
+            }
             let jumlahKeluar;
             while (true) {
                 jumlahKeluar = Number(readlineSync.question("Masukan Jumlah Barang Yang keluar: "));
@@ -143,6 +172,7 @@ while (true) {
             manager.barangKeuar(idKeluar, jumlahKeluar);
             console.log("Barang berhasil keluar");
             manager.simpan();
+            break;
         case 5:
             manager.tampilkanBarang();
             let idHapus;
@@ -154,7 +184,7 @@ while (true) {
                     continue;
                 }
 
-                const adaBarang = StockManager.DaftarBarang.find(b => b.id === id);
+                const adaBarang = manager.DaftarBarang.find(b => b.id === idHapus);
 
                 if (adaBarang) {
                     break;
@@ -165,9 +195,18 @@ while (true) {
             manager.hapusBarang(idHapus);
             console.log("Barang berhasil dihapus");
             manager.simpan();
+            break;
         case 6:
-            manager.cekStokMenipis();
+            const menipis = manager.cekStokMenipis();
+            if (menipis.length > 0) {
+                console.log("Barang dengan stok menipis:");
+                menipis.forEach(b => console.log(`${b.id}. ${b.nama} - Stok: ${b.stok}`));
+            } else {
+                console.log("Tidak ada barang dengan stok menipis.");
+            }
+            break;
         case 7:
             process.exit(0);
+            break;
     }
 }
